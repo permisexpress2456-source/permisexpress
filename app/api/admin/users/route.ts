@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { verifyAdminToken } from '../login/route'
+import { verifyAdminToken } from '@/lib/adminAuth'
 
 function getAdmin(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
