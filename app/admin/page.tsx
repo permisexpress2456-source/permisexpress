@@ -15,6 +15,13 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
   refusee: { label: 'Refusée', color: '#991b1b', bg: '#fef2f2' },
 }
 
+function normalizeStatus(raw: string): string {
+  const s = raw.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  if (s.includes('valid')) return 'validee'
+  if (s.includes('refus')) return 'refusee'
+  return 'en_attente'
+}
+
 export default function AdminPage() {
   const [token, setToken] = useState('')
   const [adminInfo, setAdminInfo] = useState<{ email: string; nom: string; isSuper: boolean } | null>(null)
@@ -42,11 +49,16 @@ export default function AdminPage() {
   const [editPass, setEditPass] = useState('')
 
   useEffect(() => {
-    const saved = sessionStorage.getItem('admin_token')
-    const savedInfo = sessionStorage.getItem('admin_info')
+    const saved = localStorage.getItem('admin_token') || sessionStorage.getItem('admin_token')
+    const savedInfo = localStorage.getItem('admin_info') || sessionStorage.getItem('admin_info')
     if (saved && savedInfo) {
       setToken(saved)
       setAdminInfo(JSON.parse(savedInfo))
+      // Migrate from sessionStorage to localStorage
+      localStorage.setItem('admin_token', saved)
+      localStorage.setItem('admin_info', savedInfo)
+      sessionStorage.removeItem('admin_token')
+      sessionStorage.removeItem('admin_info')
     }
   }, [])
 
@@ -68,19 +80,21 @@ export default function AdminPage() {
     if (!res.ok) { setLoginError(data.error); return }
     setToken(data.token)
     setAdminInfo(data.admin)
-    sessionStorage.setItem('admin_token', data.token)
-    sessionStorage.setItem('admin_info', JSON.stringify(data.admin))
+    localStorage.setItem('admin_token', data.token)
+    localStorage.setItem('admin_info', JSON.stringify(data.admin))
   }
 
   function logout() {
     setToken(''); setAdminInfo(null)
+    localStorage.removeItem('admin_token')
+    localStorage.removeItem('admin_info')
     sessionStorage.removeItem('admin_token')
     sessionStorage.removeItem('admin_info')
   }
 
   async function fetchInscriptions() {
     setLoading(true)
-    const res = await fetch('/api/admin/inscriptions', { headers })
+    const res = await fetch('/api/admin/inscriptions', { headers, cache: 'no-store' })
     if (res.ok) { const d = await res.json(); setInscriptions(d.inscriptions || []) }
     else { setError('Erreur de chargement'); logout() }
     setLoading(false)
@@ -203,7 +217,7 @@ export default function AdminPage() {
           <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 1fr' : '1fr', gap: '20px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {inscriptions.map(ins => {
-                const st = STATUS_LABELS[ins.status] || STATUS_LABELS.en_attente
+                const st = STATUS_LABELS[normalizeStatus(ins.status)]
                 const active = selected?.id === ins.id
                 return (
                   <div key={ins.id} onClick={() => setSelected(ins)}
@@ -270,7 +284,7 @@ export default function AdminPage() {
                     <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
                       {Object.entries(STATUS_LABELS).map(([key, val]) => (
                         <button key={key} onClick={() => updateStatus(selected.id, key)}
-                          style={{ flex: 1, padding: '6px', borderRadius: 'var(--radius)', border: selected.status === key ? '2px solid var(--blue)' : '1px solid var(--border)', background: val.bg, color: val.color, fontWeight: 700, fontSize: '10px', cursor: 'pointer' }}>
+                          style={{ flex: 1, padding: '6px', borderRadius: 'var(--radius)', border: normalizeStatus(selected.status) === key ? '2px solid var(--blue)' : '1px solid var(--border)', background: val.bg, color: val.color, fontWeight: 700, fontSize: '10px', cursor: 'pointer' }}>
                           {val.label}
                         </button>
                       ))}
