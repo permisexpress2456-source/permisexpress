@@ -12,6 +12,7 @@ export default function ConnexionPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPass, setShowPass] = useState(false)
 
   const handle = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -111,7 +112,14 @@ export default function ConnexionPage() {
             </div>
             <div className="form-group">
               <label htmlFor="password">Mot de passe *</label>
-              <input id="password" name="password" type="password" required value={form.password} onChange={handle} placeholder="Min. 6 caractères" minLength={6} />
+              <div style={{ position: 'relative' }}>
+                <input id="password" name="password" type={showPass ? 'text' : 'password'} required value={form.password} onChange={handle} placeholder="Min. 6 caractères" minLength={6} style={{ paddingRight: '44px' }} />
+                <button type="button" onClick={() => setShowPass(!showPass)}
+                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '4px' }}
+                  aria-label={showPass ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
+                  {showPass ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
 
             {error && <p style={{ color: 'var(--red)', fontWeight: 600, fontSize: 13, marginBottom: 12 }}>{error}</p>}

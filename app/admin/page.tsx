@@ -30,6 +30,7 @@ export default function AdminPage() {
   const [loginPass, setLoginPass] = useState('')
   const [loginError, setLoginError] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
+  const [showLoginPass, setShowLoginPass] = useState(false)
 
   // Add admin form
   const [newEmail, setNewEmail] = useState('')
@@ -142,8 +143,15 @@ export default function AdminPage() {
         </div>
         <div style={{ marginBottom: '20px' }}>
           <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--dark)', display: 'block', marginBottom: '6px' }}>Mot de passe</label>
-          <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required
-            style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
+          <div style={{ position: 'relative' }}>
+            <input type={showLoginPass ? 'text' : 'password'} value={loginPass} onChange={e => setLoginPass(e.target.value)} required
+              style={{ width: '100%', padding: '12px', paddingRight: '44px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
+            <button type="button" onClick={() => setShowLoginPass(!showLoginPass)}
+              style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '4px' }}
+              aria-label={showLoginPass ? 'Masquer' : 'Afficher'}>
+              {showLoginPass ? '🙈' : '👁️'}
+            </button>
+          </div>
         </div>
         {loginError && <p style={{ color: 'var(--red)', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>{loginError}</p>}
         <button type="submit" disabled={loggingIn}
