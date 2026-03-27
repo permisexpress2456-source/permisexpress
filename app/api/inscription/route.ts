@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 export async function POST(req: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ ok: false, error: 'Supabase non configuré' }, { status: 500 })
+    }
+
     const fd = await req.formData()
 
     const permis = fd.get('permis') as string
@@ -15,29 +18,53 @@ export async function POST(req: NextRequest) {
     const message = fd.get('message') as string
     const transcash = fd.get('transcash') as string
 
-    // Create folder for this submission
+    // Create unique folder name
     const timestamp = Date.now()
     const folderName = `${slug}_${nom}_${prenom}_${timestamp}`.replace(/[^a-zA-Z0-9_-]/g, '_')
-    const uploadDir = path.join(process.cwd(), 'uploads', folderName)
-    await mkdir(uploadDir, { recursive: true })
 
-    // Save metadata
-    const meta = {
-      permis, slug, nom, prenom, email, tel, message, transcash,
-      date: new Date().toISOString(),
-    }
-    await writeFile(path.join(uploadDir, '_info.json'), JSON.stringify(meta, null, 2), 'utf-8')
-
-    // Save uploaded files
+    // Upload files to Supabase Storage
+    const uploadedFiles: string[] = []
     const entries = Array.from(fd.entries())
+
     for (const [key, value] of entries) {
       if (value instanceof File && value.size > 0) {
         const bytes = await value.arrayBuffer()
         const buffer = Buffer.from(bytes)
         const safeName = key.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100)
         const ext = value.name.split('.').pop() ?? 'bin'
-        await writeFile(path.join(uploadDir, `${safeName}.${ext}`), buffer)
+        const filePath = `${folderName}/${safeName}.${ext}`
+
+        const { error } = await supabaseAdmin.storage
+          .from('inscriptions')
+          .upload(filePath, buffer, {
+            contentType: value.type || 'application/octet-stream',
+            upsert: true,
+          })
+
+        if (!error) {
+          uploadedFiles.push(`${safeName}.${ext}`)
+        }
       }
+    }
+
+    // Save metadata in inscriptions table
+    const { error: dbError } = await supabaseAdmin
+      .from('inscriptions')
+      .insert({
+        folder: folderName,
+        permis,
+        slug,
+        nom,
+        prenom,
+        email,
+        tel,
+        message,
+        transcash,
+        documents: uploadedFiles,
+      })
+
+    if (dbError) {
+      console.error('DB insert error:', dbError)
     }
 
     return NextResponse.json({ ok: true, folder: folderName })

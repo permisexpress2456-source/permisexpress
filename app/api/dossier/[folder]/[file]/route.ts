@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile, stat } from 'fs/promises'
-import path from 'path'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 const MIME: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
@@ -9,17 +8,21 @@ const MIME: Record<string, string> = {
 
 export async function GET(_req: NextRequest, { params }: { params: { folder: string; file: string } }) {
   try {
-    const filePath = path.join(process.cwd(), 'uploads', params.folder, params.file)
-
-    // Security: prevent path traversal
-    const resolved = path.resolve(filePath)
-    const uploadsDir = path.resolve(path.join(process.cwd(), 'uploads'))
-    if (!resolved.startsWith(uploadsDir)) {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: 'Supabase non configuré' }, { status: 500 })
     }
 
-    await stat(filePath) // check exists
-    const buffer = await readFile(filePath)
+    const filePath = `${params.folder}/${params.file}`
+
+    const { data, error } = await supabaseAdmin.storage
+      .from('inscriptions')
+      .download(filePath)
+
+    if (error || !data) {
+      return NextResponse.json({ error: 'Fichier introuvable' }, { status: 404 })
+    }
+
+    const buffer = Buffer.from(await data.arrayBuffer())
     const ext = params.file.split('.').pop()?.toLowerCase() || 'bin'
     const contentType = MIME[ext] || 'application/octet-stream'
 
@@ -31,6 +34,6 @@ export async function GET(_req: NextRequest, { params }: { params: { folder: str
       },
     })
   } catch {
-    return NextResponse.json({ error: 'Fichier introuvable' }, { status: 404 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

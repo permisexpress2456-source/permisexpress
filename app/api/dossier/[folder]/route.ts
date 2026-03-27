@@ -1,30 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile, readdir } from 'fs/promises'
-import path from 'path'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
-export async function GET(req: NextRequest, { params }: { params: { folder: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: { folder: string } }) {
   try {
-    const folder = params.folder
-    const uploadDir = path.join(process.cwd(), 'uploads', folder)
-
-    const files = await readdir(uploadDir)
-
-    // Read metadata
-    let meta = null
-    if (files.includes('_info.json')) {
-      const raw = await readFile(path.join(uploadDir, '_info.json'), 'utf-8')
-      meta = JSON.parse(raw)
+    if (!supabaseAdmin) {
+      return NextResponse.json({ ok: false, error: 'Supabase non configuré' }, { status: 500 })
     }
 
-    // List uploaded documents (exclude _info.json)
-    const documents = files.filter(f => f !== '_info.json').map(f => {
-      const ext = f.split('.').pop()?.toLowerCase() || ''
+    const folder = params.folder
+
+    // Get metadata from DB
+    const { data: meta, error: dbError } = await supabaseAdmin
+      .from('inscriptions')
+      .select('*')
+      .eq('folder', folder)
+      .single()
+
+    if (dbError || !meta) {
+      return NextResponse.json({ ok: false, error: 'Dossier introuvable' }, { status: 404 })
+    }
+
+    // List files in storage
+    const { data: files } = await supabaseAdmin.storage
+      .from('inscriptions')
+      .list(folder)
+
+    const documents = (files || []).map(f => {
+      const ext = f.name.split('.').pop()?.toLowerCase() || ''
       const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)
-      return { name: f, ext, isImage }
+      return { name: f.name, ext, isImage }
     })
 
     return NextResponse.json({ ok: true, meta, documents })
   } catch {
-    return NextResponse.json({ ok: false, error: 'Dossier introuvable' }, { status: 404 })
+    return NextResponse.json({ ok: false, error: 'Erreur serveur' }, { status: 500 })
   }
 }
