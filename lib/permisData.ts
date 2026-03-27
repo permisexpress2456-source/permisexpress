@@ -140,6 +140,7 @@ export const permisData: Record<string, PermisInfo> = {
       'Pièce d\'identité recto/verso',
       'Justificatif de domicile',
       '2 photos d\'identité',
+      'Numéro NEPH (si déjà inscrit au fichier national)',
     ],
   },
   'permis-chasse': {
