@@ -61,3 +61,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 7. Désactiver RLS (accès uniquement via service_role côté backend)
 ALTER TABLE inscriptions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE admins DISABLE ROW LEVEL SECURITY;
+
+-- 8. Table des sessions admin
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  token TEXT UNIQUE NOT NULL,
+  email TEXT NOT NULL,
+  is_super BOOLEAN DEFAULT false,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE admin_sessions DISABLE ROW LEVEL SECURITY;

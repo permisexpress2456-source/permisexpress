@@ -2,15 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAdminToken } from '@/lib/adminAuth'
 
-function getAdmin(req: NextRequest) {
+async function getAdmin(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return null
-  return verifyAdminToken(token)
+  return await verifyAdminToken(token)
 }
 
-// List admins
 export async function GET(req: NextRequest) {
-  const admin = getAdmin(req)
+  const admin = await getAdmin(req)
   if (!admin?.isSuper) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
   const { data } = await supabaseAdmin
@@ -21,15 +20,13 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ admins: data || [] })
 }
 
-// Add admin
 export async function POST(req: NextRequest) {
-  const admin = getAdmin(req)
+  const admin = await getAdmin(req)
   if (!admin?.isSuper) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
   const { email, password, nom } = await req.json()
   if (!email || !password) return NextResponse.json({ error: 'Email et mot de passe requis' }, { status: 400 })
 
-  // Hash password via pgcrypto
   const { data: hash } = await supabaseAdmin.rpc('hash_password', { input_password: password })
 
   const { error } = await supabaseAdmin

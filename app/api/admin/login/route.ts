@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   }
 
   const token = randomBytes(32).toString('hex')
-  setAdminToken(token, { email: data.email, isSuper: data.is_super })
+  await setAdminToken(token, { email: data.email, isSuper: data.is_super })
 
   return NextResponse.json({ ok: true, token, admin: { email: data.email, nom: data.nom, isSuper: data.is_super } })
 }

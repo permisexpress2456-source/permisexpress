@@ -9,7 +9,7 @@ const MIME: Record<string, string> = {
 
 export async function GET(req: NextRequest, { params }: { params: { folder: string; file: string } }) {
   const token = req.nextUrl.searchParams.get('token') || req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token || !verifyAdminToken(token)) {
+  if (!token || !await verifyAdminToken(token)) {
     return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
   if (!supabaseAdmin) {

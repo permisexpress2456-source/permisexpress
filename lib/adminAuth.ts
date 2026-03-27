@@ -1,12 +1,31 @@
-const tokens = new Map<string, { email: string; isSuper: boolean; expires: number }>()
+import { supabaseAdmin } from './supabaseAdmin'
 
-export function verifyAdminToken(token: string) {
-  const session = tokens.get(token)
-  if (!session) return null
-  if (Date.now() > session.expires) { tokens.delete(token); return null }
-  return session
+export async function verifyAdminToken(token: string): Promise<{ email: string; isSuper: boolean } | null> {
+  if (!supabaseAdmin || !token) return null
+
+  const { data } = await supabaseAdmin
+    .from('admin_sessions')
+    .select('email, is_super, expires_at')
+    .eq('token', token)
+    .single()
+
+  if (!data) return null
+  if (new Date(data.expires_at) < new Date()) {
+    await supabaseAdmin.from('admin_sessions').delete().eq('token', token)
+    return null
+  }
+
+  return { email: data.email, isSuper: data.is_super }
 }
 
-export function setAdminToken(token: string, data: { email: string; isSuper: boolean }) {
-  tokens.set(token, { ...data, expires: Date.now() + 24 * 60 * 60 * 1000 })
+export async function setAdminToken(token: string, data: { email: string; isSuper: boolean }) {
+  if (!supabaseAdmin) return
+  const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+
+  await supabaseAdmin.from('admin_sessions').insert({
+    token,
+    email: data.email,
+    is_super: data.isSuper,
+    expires_at,
+  })
 }

@@ -2,15 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAdminToken } from '@/lib/adminAuth'
 
-function getAdmin(req: NextRequest) {
+async function getAdmin(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
   if (!token) return null
-  return verifyAdminToken(token)
+  return await verifyAdminToken(token)
 }
 
-// Update password
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const admin = getAdmin(req)
+  const admin = await getAdmin(req)
   if (!admin?.isSuper) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
   const { password } = await req.json()
@@ -20,27 +19,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const { data: hash } = await supabaseAdmin.rpc('hash_password', { input_password: password })
 
-  const { error } = await supabaseAdmin
-    .from('admins')
-    .update({ password: hash })
-    .eq('id', params.id)
-
+  const { error } = await supabaseAdmin.from('admins').update({ password: hash }).eq('id', params.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
 
-// Delete admin
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const admin = getAdmin(req)
+  const admin = await getAdmin(req)
   if (!admin?.isSuper) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
-  // Prevent deleting yourself
-  const { data: target } = await supabaseAdmin
-    .from('admins')
-    .select('email')
-    .eq('id', params.id)
-    .single()
-
+  const { data: target } = await supabaseAdmin.from('admins').select('email').eq('id', params.id).single()
   if (target?.email === admin.email) {
     return NextResponse.json({ error: 'Vous ne pouvez pas vous supprimer vous-même' }, { status: 400 })
   }

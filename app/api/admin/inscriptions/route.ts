@@ -4,7 +4,7 @@ import { verifyAdminToken } from '@/lib/adminAuth'
 
 export async function GET(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token || !verifyAdminToken(token)) {
+  if (!token || !await verifyAdminToken(token)) {
     return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
   if (!supabaseAdmin) return NextResponse.json({ error: 'Supabase non configuré' }, { status: 500 })

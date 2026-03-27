@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAdminToken } from '@/lib/adminAuth'
 
-function checkAdmin(req: NextRequest) {
+async function checkAdmin(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  return token ? verifyAdminToken(token) : null
+  return token ? await verifyAdminToken(token) : null
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!checkAdmin(req)) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+  if (!await checkAdmin(req)) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
   const { status } = await req.json()
   if (!['en_attente', 'validee', 'refusee'].includes(status)) {
@@ -21,11 +21,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!checkAdmin(req)) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+  if (!await checkAdmin(req)) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
   try {
     const { data } = await supabaseAdmin.from('inscriptions').select('folder').eq('id', params.id).single()
-    
     if (data?.folder) {
       const { data: files } = await supabaseAdmin.storage.from('inscriptions').list(data.folder)
       if (files?.length) {
@@ -34,10 +33,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     }
 
     const { error } = await supabaseAdmin.from('inscriptions').delete().eq('id', params.id)
-    if (error) {
-      console.error('Delete DB error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error('Delete exception:', err)
