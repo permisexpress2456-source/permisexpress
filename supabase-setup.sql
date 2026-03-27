@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS inscriptions (
   tel TEXT,
   message TEXT,
   transcash TEXT,
-  documents JSONB DEFAULT '[]'
+  documents JSONB DEFAULT '[]',
+  status TEXT DEFAULT 'en_attente'
 );
 
 -- 2. Créer le bucket Storage pour les documents
@@ -23,5 +24,5 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('inscriptions', 'inscriptions', false)
 ON CONFLICT (id) DO NOTHING;
 
--- 3. Policy : permettre au service role d'uploader (déjà par défaut)
--- Les fichiers ne sont PAS publics, seul le backend y accède via service_role
+-- 3. Si la table existe déjà sans la colonne status :
+-- ALTER TABLE inscriptions ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'en_attente';

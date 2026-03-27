@@ -77,9 +77,15 @@ export default function InscriptionForm({ permis, slug }: { permis: PermisInfo; 
       // Non-blocking — on continue vers WhatsApp même si l'API échoue
     }
 
+    // Fallback folder name if API failed
+    if (!folderName) {
+      const timestamp = Date.now()
+      folderName = `${slug}_${form.nom}_${form.prenom}_${timestamp}`.replace(/[^a-zA-Z0-9_-]/g, '_')
+    }
+
     // 2. Build upload link for documents
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://permisexpress.fr'
-    const uploadLink = folderName ? `${baseUrl}/dossier/${folderName}` : ''
+    const uploadLink = `${baseUrl}/dossier/${folderName}`
 
     // 3. Build WhatsApp message with all info
     const docsList = permis.documents.map(d => `  • ${d} ✅`).join('\n')
@@ -101,8 +107,8 @@ export default function InscriptionForm({ permis, slug }: { permis: PermisInfo; 
       ``,
       `💰 *Montant :* ${permis.price}`,
       ``,
-      uploadLink ? `📎 *Lien dossier documents :*` : '',
-      uploadLink ? uploadLink : '',
+      `📎 *Lien dossier documents :*`,
+      uploadLink,
       ``,
       `_Envoyé depuis permisexpress.fr_`,
     ].filter(Boolean).join('\n')

@@ -148,6 +148,17 @@ export default function Navbar() {
             <CartButton />
           </div>
 
+          {/* Mobile login button (visible only on mobile) */}
+          {user ? (
+            <Link href="/connexion" className="navbar__mobile-login" onClick={() => setMenuOpen(false)}>
+              👤 {profile?.prenom || 'Compte'}
+            </Link>
+          ) : (
+            <Link href="/connexion" className="navbar__mobile-login" onClick={() => setMenuOpen(false)}>
+              👤 Connexion
+            </Link>
+          )}
+
           <button
             className={`navbar__hamburger${menuOpen ? ' navbar__hamburger--open' : ''}`}
             onClick={() => setMenuOpen(!menuOpen)}
