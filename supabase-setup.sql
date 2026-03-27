@@ -57,3 +57,7 @@ BEGIN
   RETURN crypt(input_password, gen_salt('bf'));
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 7. Désactiver RLS (accès uniquement via service_role côté backend)
+ALTER TABLE inscriptions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE admins DISABLE ROW LEVEL SECURITY;
