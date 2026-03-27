@@ -23,15 +23,24 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   if (!checkAdmin(req)) return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
 
-  const { data } = await supabaseAdmin.from('inscriptions').select('folder').eq('id', params.id).single()
-  if (data?.folder) {
-    const { data: files } = await supabaseAdmin.storage.from('inscriptions').list(data.folder)
-    if (files?.length) {
-      await supabaseAdmin.storage.from('inscriptions').remove(files.map(f => `${data.folder}/${f.name}`))
+  try {
+    const { data } = await supabaseAdmin.from('inscriptions').select('folder').eq('id', params.id).single()
+    
+    if (data?.folder) {
+      const { data: files } = await supabaseAdmin.storage.from('inscriptions').list(data.folder)
+      if (files?.length) {
+        await supabaseAdmin.storage.from('inscriptions').remove(files.map(f => `${data.folder}/${f.name}`))
+      }
     }
-  }
 
-  const { error } = await supabaseAdmin.from('inscriptions').delete().eq('id', params.id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+    const { error } = await supabaseAdmin.from('inscriptions').delete().eq('id', params.id)
+    if (error) {
+      console.error('Delete DB error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('Delete exception:', err)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
 }

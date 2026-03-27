@@ -98,7 +98,9 @@ export default function AdminPage() {
 
   async function deleteInscription(id: string) {
     if (!confirm('Supprimer cette inscription ?')) return
-    await fetch(`/api/admin/inscriptions/${id}`, { method: 'DELETE', headers })
+    const res = await fetch(`/api/admin/inscriptions/${id}`, { method: 'DELETE', headers })
+    const data = await res.json()
+    if (!res.ok) { alert('Erreur: ' + (data.error || 'Suppression échouée')); return }
     setSelected(null); fetchInscriptions()
   }
 
