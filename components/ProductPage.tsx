@@ -13,7 +13,7 @@ interface ProductPageProps {
   price: string
   image: string
   breadcrumb: string
-  subtitle: string
+  subtitle?: string
   features: Feature[]
   contactOnly?: boolean
   inscriptionSlug?: string
