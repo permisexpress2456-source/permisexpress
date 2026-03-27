@@ -1,21 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase())
-
-async function isAdmin(req: NextRequest): Promise<boolean> {
-  if (!supabaseAdmin) return false
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return false
-  const { data: { user } } = await supabaseAdmin.auth.getUser(token)
-  if (!user?.email) return false
-  return ADMIN_EMAILS.includes(user.email.toLowerCase())
-}
+import { verifyAdminToken } from '../login/route'
 
 export async function GET(req: NextRequest) {
-  if (!await isAdmin(req)) {
+  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  if (!token || !verifyAdminToken(token)) {
     return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
+  if (!supabaseAdmin) return NextResponse.json({ error: 'Supabase non configuré' }, { status: 500 })
 
   const { data, error } = await supabaseAdmin
     .from('inscriptions')
