@@ -25,14 +25,14 @@ const links: MenuItem[] = [
   {
     label: 'OFFRES', href: '/tarifs',
     submenu: [
-      { label: 'PERMIS B — 850€', href: '/offres/permis-b' },
-      { label: 'PERMIS AM', href: '/produits/permis-am' },
-      { label: 'PERMIS 125 — 1 300€', href: '/produits/passerelle-a1' },
-      { label: 'PERMIS MOTO A2 — 600€', href: '/produits/permis-a2-21h', submenu: [
-        { label: 'PERMIS A2 21H', href: '/produits/permis-a2-21h' },
-        { label: 'PERMIS A2 27H', href: '/produits/permis-a2-27h' },
+      { label: 'PERMIS B — 850€', href: '/nos-offres/permis-b' },
+      { label: 'PERMIS AM', href: '/nos-offres/permis-am' },
+      { label: 'PERMIS 125 — 1 300€', href: '/nos-offres/passerelle-a1' },
+      { label: 'PERMIS MOTO A2 — 600€', href: '/nos-offres/permis-a2-21h', submenu: [
+        { label: 'PERMIS A2 21H', href: '/nos-offres/permis-a2-21h' },
+        { label: 'PERMIS A2 27H', href: '/nos-offres/permis-a2-27h' },
       ]},
-      { label: 'PERMIS MOTO A3 — 1 300€', href: '/produits/passerelle-a' },
+      { label: 'PERMIS MOTO A3 — 1 300€', href: '/nos-offres/passerelle-a' },
       { label: 'PERMIS BE — 1 000€', href: '/nos-offres/permis-be' },
       { label: 'PERMIS B96 — 1 500€', href: '/nos-offres/permis-b96' },
       { label: 'POIDS LOURD — 1 500€', href: '/nos-offres/permis-c' },

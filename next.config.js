@@ -8,6 +8,13 @@ const nextConfig = {
       { protocol: 'https', hostname: 'logo.clearbit.com' },
     ],
   },
+  async redirects() {
+    return [
+      // Rediriger /produits/* et /offres/* vers /nos-offres/*
+      { source: '/produits/:slug', destination: '/nos-offres/:slug', permanent: true },
+      { source: '/offres/:slug', destination: '/nos-offres/:slug', permanent: true },
+    ]
+  },
 }
 
 module.exports = nextConfig
