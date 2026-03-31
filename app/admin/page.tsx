@@ -17,6 +17,7 @@ type Offer = {
   price: string
   description: string
   documents: string[]
+  image_url: string
   is_active: boolean
   created_at: string
   updated_at: string
@@ -49,11 +50,12 @@ export default function AdminPage() {
   const [offers, setOffers] = useState<Offer[]>([])
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null)
   const [showOfferForm, setShowOfferForm] = useState(false)
-  const [offerFormData, setOfferFormData] = useState({ slug: '', title: '', price: '', description: '', documents: [''], is_active: true })
+  const [offerFormData, setOfferFormData] = useState({ slug: '', title: '', price: '', description: '', documents: [''], image_url: '', is_active: true })
   const [offerSortBy, setOfferSortBy] = useState<'title' | 'created_at'>('created_at')
   const [offerSortOrder, setOfferSortOrder] = useState<'asc' | 'desc'>('desc')
   const [editingOffer, setEditingOffer] = useState(false)
-  const [editOfferData, setEditOfferData] = useState({ slug: '', title: '', price: '', description: '', documents: [''], is_active: true })
+  const [editOfferData, setEditOfferData] = useState({ slug: '', title: '', price: '', description: '', documents: [''], image_url: '', is_active: true })
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('')
@@ -166,7 +168,7 @@ export default function AdminPage() {
   }
 
   function resetOfferForm() {
-    setOfferFormData({ slug: '', title: '', price: '', description: '', documents: [''], is_active: true })
+    setOfferFormData({ slug: '', title: '', price: '', description: '', documents: [''], image_url: '', is_active: true })
   }
 
   function addDocumentField() {
@@ -191,6 +193,7 @@ export default function AdminPage() {
       price: offer.price,
       description: offer.description || '',
       documents: offer.documents?.length ? [...offer.documents] : [''],
+      image_url: offer.image_url || '',
       is_active: offer.is_active
     })
     setEditingOffer(true)
@@ -228,6 +231,35 @@ export default function AdminPage() {
     const docs = [...editOfferData.documents]
     docs[index] = value
     setEditOfferData({ ...editOfferData, documents: docs })
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setUploadingImage(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      })
+      const data = await res.json()
+      if (!res.ok) { alert(data.error); return }
+      
+      if (isEdit) {
+        setEditOfferData({ ...editOfferData, image_url: data.url })
+      } else {
+        setOfferFormData({ ...offerFormData, image_url: data.url })
+      }
+    } catch {
+      alert('Erreur lors de l\'upload')
+    } finally {
+      setUploadingImage(false)
+    }
   }
 
   async function updateStatus(id: string, status: string) {
@@ -491,6 +523,23 @@ export default function AdminPage() {
                     <textarea value={offerFormData.description} onChange={e => setOfferFormData({ ...offerFormData, description: e.target.value })} rows={3} placeholder="Description de l'offre..."
                       style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical' }} />
                   </div>
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '4px' }}>Image</label>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <input type="text" value={offerFormData.image_url} onChange={e => setOfferFormData({ ...offerFormData, image_url: e.target.value })} placeholder="URL de l'image ou uploader ci-dessous"
+                        style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <input type="file" accept="image/*" onChange={e => handleImageUpload(e, false)} disabled={uploadingImage}
+                        style={{ fontSize: '12px' }} />
+                      {uploadingImage && <span style={{ fontSize: '12px', color: 'var(--text)' }}>Upload en cours...</span>}
+                    </div>
+                    {offerFormData.image_url && (
+                      <div style={{ marginTop: '8px' }}>
+                        <img src={offerFormData.image_url} alt="Aperçu" style={{ maxWidth: '200px', maxHeight: '120px', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }} />
+                      </div>
+                    )}
+                  </div>
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>Documents requis</label>
                     {offerFormData.documents.map((doc, i) => (
@@ -590,6 +639,23 @@ export default function AdminPage() {
                           <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '4px' }}>Description</label>
                           <textarea value={editOfferData.description} onChange={e => setEditOfferData({ ...editOfferData, description: e.target.value })} rows={3}
                             style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical' }} />
+                        </div>
+                        <div style={{ marginBottom: '12px' }}>
+                          <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '4px' }}>Image</label>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                            <input type="text" value={editOfferData.image_url} onChange={e => setEditOfferData({ ...editOfferData, image_url: e.target.value })} placeholder="URL de l'image"
+                              style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box' }} />
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <input type="file" accept="image/*" onChange={e => handleImageUpload(e, true)} disabled={uploadingImage}
+                              style={{ fontSize: '12px' }} />
+                            {uploadingImage && <span style={{ fontSize: '12px', color: 'var(--text)' }}>Upload en cours...</span>}
+                          </div>
+                          {editOfferData.image_url && (
+                            <div style={{ marginTop: '8px' }}>
+                              <img src={editOfferData.image_url} alt="Aperçu" style={{ maxWidth: '200px', maxHeight: '120px', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }} />
+                            </div>
+                          )}
                         </div>
                         <div style={{ marginBottom: '16px' }}>
                           <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>Documents requis</label>

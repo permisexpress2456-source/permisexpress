@@ -10,6 +10,7 @@ export interface Offer {
   price: string
   description: string
   documents: string[]
+  image_url: string
   is_active: boolean
   created_at: string
   updated_at: string
@@ -21,6 +22,7 @@ export interface CreateOfferInput {
   price: string
   description?: string
   documents?: string[]
+  image_url?: string
   is_active?: boolean
 }
 
@@ -30,6 +32,7 @@ export interface UpdateOfferInput {
   price?: string
   description?: string
   documents?: string[]
+  image_url?: string
   is_active?: boolean
 }
 

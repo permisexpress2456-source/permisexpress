@@ -46,6 +46,7 @@ export async function PATCH(
   if (body.price !== undefined) updateData.price = body.price.trim()
   if (body.description !== undefined) updateData.description = body.description.trim()
   if (body.documents !== undefined) updateData.documents = body.documents
+  if (body.image_url !== undefined) updateData.image_url = body.image_url.trim()
   if (body.is_active !== undefined) updateData.is_active = body.is_active
 
   const { error } = await supabaseAdmin

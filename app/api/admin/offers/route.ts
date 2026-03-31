@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
       price: body.price.trim(),
       description: body.description?.trim() || '',
       documents: body.documents || [],
+      image_url: body.image_url?.trim() || '',
       is_active: body.is_active ?? true
     })
     .select()

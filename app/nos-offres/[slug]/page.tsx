@@ -72,12 +72,15 @@ export default async function OfferPage({ params }: { params: Promise<{ slug: st
     }
   ]
 
+  // Utiliser l'image de la BDD si disponible, sinon fallback
+  const imageUrl = offer.image_url || defaultImages[slug] || defaultImage
+
   return (
     <ProductPage
       title={offer.title}
       price={offer.price}
       breadcrumb={offer.title}
-      image={defaultImages[slug] || defaultImage}
+      image={imageUrl}
       inscriptionSlug={slug}
       features={features}
     />
