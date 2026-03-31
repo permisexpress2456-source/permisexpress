@@ -1,6 +1,6 @@
 ﻿'use client'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import LogoPermisExpress from './LogoPermisExpress'
 import CartButton from './CartButton'
 import { useAuth } from '@/context/AuthContext'
@@ -12,7 +12,14 @@ type MenuItem = {
   submenu?: (SubItem & { submenu?: SubItem[] })[]
 }
 
-const links: MenuItem[] = [
+type Offer = {
+  slug: string
+  title: string
+  price: string
+  is_active: boolean
+}
+
+const staticLinks: MenuItem[] = [
   { label: 'ACCUEIL', href: '/' },
   {
     label: "L'AUTO-ÉCOLE", href: '#',
@@ -22,29 +29,7 @@ const links: MenuItem[] = [
       { label: 'OÙ NOUS TROUVER ?', href: '/nos-agences' },
     ],
   },
-  {
-    label: 'OFFRES', href: '/tarifs',
-    submenu: [
-      { label: 'PERMIS B — 850€', href: '/nos-offres/permis-b' },
-      { label: 'PERMIS AM', href: '/nos-offres/permis-am' },
-      { label: 'PERMIS 125 — 1 300€', href: '/nos-offres/passerelle-a1' },
-      { label: 'PERMIS MOTO A2 — 600€', href: '/nos-offres/permis-a2-21h', submenu: [
-        { label: 'PERMIS A2 21H', href: '/nos-offres/permis-a2-21h' },
-        { label: 'PERMIS A2 27H', href: '/nos-offres/permis-a2-27h' },
-      ]},
-      { label: 'PERMIS MOTO A3 — 1 300€', href: '/nos-offres/passerelle-a' },
-      { label: 'PERMIS BE — 1 000€', href: '/nos-offres/permis-be' },
-      { label: 'PERMIS B96 — 1 500€', href: '/nos-offres/permis-b96' },
-      { label: 'POIDS LOURD — 1 500€', href: '/nos-offres/permis-c' },
-      { label: 'SUPER POIDS LOURD — 2 000€', href: '/nos-offres/permis-ce-super' },
-      { label: 'PERMIS CE — 1 700€', href: '/nos-offres/permis-ce' },
-      { label: 'CODE DE LA ROUTE — 250€', href: '/nos-offres/code' },
-      { label: 'PERMIS DE CHASSE — 700€', href: '/nos-offres/permis-chasse' },
-      { label: 'PERMIS BATEAU — 1 800€', href: '/nos-offres/permis-bateau' },
-      { label: 'PERMIS HAUTURIER — 500€', href: '/nos-offres/permis-hauturier' },
-      { label: '→ TOUS LES TARIFS', href: '/tarifs' },
-    ],
-  },
+  // OFFRES sera injecté dynamiquement
   {
     label: 'SERVICES', href: '#',
     submenu: [
@@ -66,7 +51,35 @@ const links: MenuItem[] = [
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
+  const [offers, setOffers] = useState<Offer[]>([])
   const { user, profile, signOut } = useAuth()
+
+  useEffect(() => {
+    fetch('/api/offers', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => setOffers(data.offers || []))
+      .catch(() => setOffers([]))
+  }, [])
+
+  // Construire le menu OFFRES dynamiquement
+  const offersSubmenu: SubItem[] = offers
+    .filter(o => o.is_active)
+    .map(o => ({
+      label: `${o.title} — ${o.price}`,
+      href: `/nos-offres/${o.slug}`
+    }))
+  offersSubmenu.push({ label: '→ TOUS LES TARIFS', href: '/tarifs' })
+
+  const links: MenuItem[] = [
+    staticLinks[0], // ACCUEIL
+    staticLinks[1], // L'AUTO-ÉCOLE
+    {
+      label: 'OFFRES',
+      href: '/tarifs',
+      submenu: offersSubmenu.length > 1 ? offersSubmenu : [{ label: 'Chargement...', href: '/tarifs' }]
+    },
+    ...staticLinks.slice(2) // SERVICES, ESPACE ÉLÈVE, TARIFS, CONTACT
+  ]
 
   function toggleSection(label: string) {
     setOpenSections(prev => ({ ...prev, [label]: !prev[label] }))
@@ -91,14 +104,14 @@ export default function Navbar() {
                     </Link>
                     <ul className="dropdown-menu">
                       {l.submenu.map(sub => (
-                        <li key={sub.label} className={sub.submenu ? 'has-sub-submenu' : ''}>
+                        <li key={sub.label} className={(sub as SubItem & { submenu?: SubItem[] }).submenu ? 'has-sub-submenu' : ''}>
                           <Link href={sub.href} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
                             {sub.label}
-                            {sub.submenu && <span style={{ fontSize: '10px', color: '#aaa' }}>▶</span>}
+                            {(sub as SubItem & { submenu?: SubItem[] }).submenu && <span style={{ fontSize: '10px', color: '#aaa' }}>▶</span>}
                           </Link>
-                          {sub.submenu && (
+                          {(sub as SubItem & { submenu?: SubItem[] }).submenu && (
                             <ul className="sub-submenu">
-                              {sub.submenu.map(sc => (
+                              {(sub as SubItem & { submenu?: SubItem[] }).submenu!.map(sc => (
                                 <li key={sc.label}><Link href={sc.href}>{sc.label}</Link></li>
                               ))}
                             </ul>
@@ -148,7 +161,7 @@ export default function Navbar() {
             <CartButton />
           </div>
 
-          {/* Mobile login button (visible only on mobile) */}
+          {/* Mobile login button */}
           {user ? (
             <Link href="/connexion" className="navbar__mobile-login" onClick={() => setMenuOpen(false)}>
               👤 {profile?.prenom || 'Compte'}
@@ -172,12 +185,10 @@ export default function Navbar() {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="mobile-menu">
-            {/* WhatsApp CTA mobile */}
             <a href="https://wa.me/33757754774" className="mobile-menu__wa" onClick={() => setMenuOpen(false)}>
               💬 WhatsApp : +33 7 57 75 47 74
             </a>
 
-            {/* Account link mobile */}
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid var(--border)', background: '#f0fdf4' }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--dark)' }}>👤 {profile?.prenom} {profile?.nom}</span>
@@ -208,7 +219,7 @@ export default function Navbar() {
                         <ul className="mobile-menu__sub">
                           {l.submenu.map(sub => (
                             <li key={sub.label}>
-                              {sub.submenu ? (
+                              {(sub as SubItem & { submenu?: SubItem[] }).submenu ? (
                                 <>
                                   <button
                                     className="mobile-menu__section-btn mobile-menu__section-btn--sub"
@@ -220,7 +231,7 @@ export default function Navbar() {
                                   </button>
                                   {openSections[sub.label] && (
                                     <ul className="mobile-menu__subsub">
-                                      {sub.submenu.map(sc => (
+                                      {(sub as SubItem & { submenu?: SubItem[] }).submenu!.map(sc => (
                                         <li key={sc.label}>
                                           <Link href={sc.href} className="mobile-menu__link mobile-menu__link--deep" onClick={() => setMenuOpen(false)}>
                                             {sc.label}
