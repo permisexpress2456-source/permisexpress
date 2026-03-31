@@ -9,6 +9,19 @@ type Inscription = {
 }
 type Admin = { id: string; email: string; nom: string; is_super: boolean; created_at: string }
 
+// Type Offer - Exigences: 1.1, 2.1, 3.1
+type Offer = {
+  id: string
+  slug: string
+  title: string
+  price: string
+  description: string
+  documents: string[]
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   en_attente: { label: 'En attente', color: '#92400e', bg: '#fffbeb' },
   validee: { label: 'Validée', color: '#166534', bg: '#f0fdf4' },
@@ -25,12 +38,20 @@ function normalizeStatus(raw: string): string {
 export default function AdminPage() {
   const [token, setToken] = useState('')
   const [adminInfo, setAdminInfo] = useState<{ email: string; nom: string; isSuper: boolean } | null>(null)
-  const [tab, setTab] = useState<'inscriptions' | 'admins'>('inscriptions')
+  const [tab, setTab] = useState<'inscriptions' | 'admins' | 'offers'>('inscriptions')
   const [inscriptions, setInscriptions] = useState<Inscription[]>([])
   const [admins, setAdmins] = useState<Admin[]>([])
   const [selected, setSelected] = useState<Inscription | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Offers state - Exigences: 1.1
+  const [offers, setOffers] = useState<Offer[]>([])
+  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null)
+  const [showOfferForm, setShowOfferForm] = useState(false)
+  const [offerFormData, setOfferFormData] = useState({ slug: '', title: '', price: '', description: '', documents: [''], is_active: true })
+  const [offerSortBy, setOfferSortBy] = useState<'title' | 'created_at'>('created_at')
+  const [offerSortOrder, setOfferSortOrder] = useState<'asc' | 'desc'>('desc')
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('')
@@ -63,7 +84,7 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    if (token) { fetchInscriptions(); if (adminInfo?.isSuper) fetchAdmins() }
+    if (token) { fetchInscriptions(); fetchOffers(); if (adminInfo?.isSuper) fetchAdmins() }
   }, [token])
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
@@ -103,6 +124,62 @@ export default function AdminPage() {
   async function fetchAdmins() {
     const res = await fetch('/api/admin/users', { headers })
     if (res.ok) { const d = await res.json(); setAdmins(d.admins || []) }
+  }
+
+  // Offers CRUD - Exigences: 6.1, 6.2, 6.3, 6.4
+  async function fetchOffers() {
+    const res = await fetch(`/api/admin/offers?sortBy=${offerSortBy}&sortOrder=${offerSortOrder}`, { headers, cache: 'no-store' })
+    if (res.ok) { const d = await res.json(); setOffers(d.offers || []) }
+  }
+
+  async function createOffer(e: React.FormEvent) {
+    e.preventDefault()
+    const docs = offerFormData.documents.filter(d => d.trim())
+    const res = await fetch('/api/admin/offers', {
+      method: 'POST', headers,
+      body: JSON.stringify({ ...offerFormData, documents: docs })
+    })
+    const d = await res.json()
+    if (!res.ok) { alert(d.error); return }
+    setShowOfferForm(false)
+    resetOfferForm()
+    fetchOffers()
+  }
+
+  async function updateOffer(id: string, data: Partial<Offer>) {
+    const res = await fetch(`/api/admin/offers/${id}`, { method: 'PATCH', headers, body: JSON.stringify(data) })
+    const d = await res.json()
+    if (!res.ok) { alert(d.error); return }
+    fetchOffers()
+    if (selectedOffer?.id === id) setSelectedOffer({ ...selectedOffer, ...data })
+  }
+
+  async function deleteOffer(id: string) {
+    if (!confirm('Supprimer cette offre ?')) return
+    const res = await fetch(`/api/admin/offers/${id}`, { method: 'DELETE', headers })
+    const d = await res.json()
+    if (!res.ok) { alert(d.error); return }
+    setSelectedOffer(null)
+    fetchOffers()
+  }
+
+  function resetOfferForm() {
+    setOfferFormData({ slug: '', title: '', price: '', description: '', documents: [''], is_active: true })
+  }
+
+  function addDocumentField() {
+    setOfferFormData({ ...offerFormData, documents: [...offerFormData.documents, ''] })
+  }
+
+  function removeDocumentField(index: number) {
+    const docs = offerFormData.documents.filter((_, i) => i !== index)
+    setOfferFormData({ ...offerFormData, documents: docs.length ? docs : [''] })
+  }
+
+  function updateDocumentField(index: number, value: string) {
+    const docs = [...offerFormData.documents]
+    docs[index] = value
+    setOfferFormData({ ...offerFormData, documents: docs })
   }
 
   async function updateStatus(id: string, status: string) {
@@ -201,6 +278,10 @@ export default function AdminPage() {
             style={{ padding: '8px 20px', borderRadius: 'var(--radius)', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: tab === 'inscriptions' ? 'var(--blue)' : 'transparent', color: tab === 'inscriptions' ? '#fff' : 'var(--text)' }}>
             📋 Inscriptions ({inscriptions.length})
           </button>
+          <button onClick={() => setTab('offers')}
+            style={{ padding: '8px 20px', borderRadius: 'var(--radius)', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: tab === 'offers' ? 'var(--blue)' : 'transparent', color: tab === 'offers' ? '#fff' : 'var(--text)' }}>
+            🏷️ Offres ({offers.length})
+          </button>
           {adminInfo?.isSuper && (
             <button onClick={() => setTab('admins')}
               style={{ padding: '8px 20px', borderRadius: 'var(--radius)', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer', background: tab === 'admins' ? 'var(--blue)' : 'transparent', color: tab === 'admins' ? '#fff' : 'var(--text)' }}>
@@ -297,6 +378,179 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── OFFERS TAB ── */}
+        {tab === 'offers' && (
+          <div>
+            {/* Toolbar: Add button + Sort */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <button onClick={() => { resetOfferForm(); setShowOfferForm(true); setSelectedOffer(null) }}
+                style={{ background: 'var(--blue)', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
+                ➕ Ajouter une offre
+              </button>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text)' }}>Trier par:</span>
+                <button onClick={() => { setOfferSortBy('title'); fetchOffers() }}
+                  style={{ padding: '6px 12px', borderRadius: 'var(--radius)', border: offerSortBy === 'title' ? '2px solid var(--blue)' : '1px solid var(--border)', background: 'var(--white)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                  Titre
+                </button>
+                <button onClick={() => { setOfferSortBy('created_at'); fetchOffers() }}
+                  style={{ padding: '6px 12px', borderRadius: 'var(--radius)', border: offerSortBy === 'created_at' ? '2px solid var(--blue)' : '1px solid var(--border)', background: 'var(--white)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                  Date
+                </button>
+                <button onClick={() => { setOfferSortOrder(offerSortOrder === 'asc' ? 'desc' : 'asc'); fetchOffers() }}
+                  style={{ padding: '6px 10px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--white)', fontSize: '12px', cursor: 'pointer' }}>
+                  {offerSortOrder === 'asc' ? '↑' : '↓'}
+                </button>
+              </div>
+            </div>
+
+            {/* Offer Form Modal */}
+            {showOfferForm && (
+              <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', padding: '24px', border: '1px solid var(--border)', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--dark)', margin: 0 }}>➕ Nouvelle offre</h3>
+                  <button onClick={() => setShowOfferForm(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--text)' }}>✕</button>
+                </div>
+                <form onSubmit={createOffer}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '4px' }}>Slug *</label>
+                      <input type="text" value={offerFormData.slug} onChange={e => setOfferFormData({ ...offerFormData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })} required placeholder="permis-b"
+                        style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '4px' }}>Titre *</label>
+                      <input type="text" value={offerFormData.title} onChange={e => setOfferFormData({ ...offerFormData, title: e.target.value })} required placeholder="Permis B — Voiture"
+                        style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '4px' }}>Prix *</label>
+                      <input type="text" value={offerFormData.price} onChange={e => setOfferFormData({ ...offerFormData, price: e.target.value })} required placeholder="850€"
+                        style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '20px' }}>
+                      <input type="checkbox" id="is_active" checked={offerFormData.is_active} onChange={e => setOfferFormData({ ...offerFormData, is_active: e.target.checked })} />
+                      <label htmlFor="is_active" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--dark)' }}>Offre active</label>
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '4px' }}>Description</label>
+                    <textarea value={offerFormData.description} onChange={e => setOfferFormData({ ...offerFormData, description: e.target.value })} rows={3} placeholder="Description de l'offre..."
+                      style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical' }} />
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', display: 'block', marginBottom: '8px' }}>Documents requis</label>
+                    {offerFormData.documents.map((doc, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
+                        <input type="text" value={doc} onChange={e => updateDocumentField(i, e.target.value)} placeholder="Document requis..."
+                          style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', fontSize: '12px' }} />
+                        <button type="button" onClick={() => removeDocumentField(i)} style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '8px 12px', borderRadius: 'var(--radius)', color: '#991b1b', cursor: 'pointer' }}>✕</button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={addDocumentField} style={{ background: 'var(--off-white)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: 'var(--radius)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', color: 'var(--blue)' }}>
+                      + Ajouter un document
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button type="submit" style={{ background: 'var(--blue)', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
+                      Créer l'offre
+                    </button>
+                    <button type="button" onClick={() => setShowOfferForm(false)} style={{ background: 'var(--off-white)', color: 'var(--dark)', border: '1px solid var(--border)', padding: '10px 24px', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
+                      Annuler
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Offers List + Detail */}
+            <div style={{ display: 'grid', gridTemplateColumns: selectedOffer ? '1fr 1fr' : '1fr', gap: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {offers.map(offer => {
+                  const active = selectedOffer?.id === offer.id
+                  return (
+                    <div key={offer.id} onClick={() => { setSelectedOffer(offer); setShowOfferForm(false) }}
+                      style={{ background: active ? 'var(--blue-pale)' : 'var(--white)', border: `2px solid ${active ? 'var(--blue)' : 'var(--border)'}`, borderRadius: 'var(--radius-lg)', padding: '14px 18px', cursor: 'pointer' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                        <div>
+                          <p style={{ fontWeight: 800, fontSize: '14px', color: 'var(--dark)', margin: '0 0 2px' }}>{offer.title}</p>
+                          <p style={{ fontSize: '12px', color: 'var(--text)', margin: 0 }}>{offer.slug}</p>
+                        </div>
+                        <span style={{ background: offer.is_active ? '#f0fdf4' : '#fef2f2', color: offer.is_active ? '#166534' : '#991b1b', padding: '3px 8px', borderRadius: '20px', fontSize: '10px', fontWeight: 700 }}>
+                          {offer.is_active ? 'Actif' : 'Inactif'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'var(--text)', flexWrap: 'wrap' }}>
+                        <span>💰 {offer.price}</span>
+                        <span>📅 {new Date(offer.created_at).toLocaleDateString('fr-FR')}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+                {offers.length === 0 && !loading && (
+                  <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text)' }}>
+                    <div style={{ fontSize: '40px', marginBottom: '12px' }}>🏷️</div>
+                    <p style={{ fontWeight: 700 }}>Aucune offre</p>
+                    <p style={{ fontSize: '12px' }}>Cliquez sur "Ajouter une offre" pour commencer</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Offer Detail Panel */}
+              {selectedOffer && (
+                <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', overflow: 'hidden', position: 'sticky', top: '100px', alignSelf: 'start' }}>
+                  <div style={{ background: 'linear-gradient(135deg, var(--blue-dark), var(--blue))', padding: '18px 22px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ fontSize: '16px', fontWeight: 900, margin: '0 0 2px' }}>{selectedOffer.title}</p>
+                      <p style={{ fontSize: '12px', opacity: .8, margin: 0 }}>{selectedOffer.slug}</p>
+                    </div>
+                    <button onClick={() => setSelectedOffer(null)} style={{ background: 'rgba(255,255,255,.2)', border: 'none', color: '#fff', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                  </div>
+                  <div style={{ padding: '18px 22px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+                      <Detail label="Prix" value={selectedOffer.price} />
+                      <Detail label="Statut" value={selectedOffer.is_active ? 'Actif' : 'Inactif'} />
+                      <Detail label="Créé le" value={new Date(selectedOffer.created_at).toLocaleString('fr-FR')} />
+                      <Detail label="Modifié le" value={new Date(selectedOffer.updated_at).toLocaleString('fr-FR')} />
+                    </div>
+                    {selectedOffer.description && (
+                      <div style={{ marginBottom: '16px' }}>
+                        <Detail label="Description" value={selectedOffer.description} />
+                      </div>
+                    )}
+                    <div style={{ marginBottom: '16px' }}>
+                      <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>📋 Documents requis ({selectedOffer.documents?.length || 0})</p>
+                      {(selectedOffer.documents || []).map((doc, i) => (
+                        <p key={i} style={{ padding: '6px 10px', background: 'var(--off-white)', borderRadius: 'var(--radius)', fontSize: '11px', color: 'var(--dark)', marginBottom: '4px' }}>
+                          📄 {doc}
+                        </p>
+                      ))}
+                      {(!selectedOffer.documents || selectedOffer.documents.length === 0) && (
+                        <p style={{ fontSize: '11px', color: 'var(--text)', fontStyle: 'italic' }}>Aucun document requis</p>
+                      )}
+                    </div>
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '14px' }}>
+                      <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Actions</p>
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+                        <button onClick={() => updateOffer(selectedOffer.id, { is_active: !selectedOffer.is_active })}
+                          style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: selectedOffer.is_active ? '#fef2f2' : '#f0fdf4', color: selectedOffer.is_active ? '#991b1b' : '#166534', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
+                          {selectedOffer.is_active ? '🔴 Désactiver' : '🟢 Activer'}
+                        </button>
+                      </div>
+                      <button onClick={() => deleteOffer(selectedOffer.id)}
+                        style={{ width: '100%', padding: '8px', background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
+                        🗑️ Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
