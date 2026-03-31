@@ -90,4 +90,5 @@ export async function generateStaticParams() {
   return slugs.map(slug => ({ slug }))
 }
 
-export const revalidate = 60 // Revalider toutes les 60 secondes
+export const dynamic = 'force-dynamic'
+export const revalidate = 0 // Toujours récupérer les données fraîches
