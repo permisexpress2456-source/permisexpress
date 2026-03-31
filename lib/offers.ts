@@ -35,6 +35,7 @@ export function getFallbackOffers(): Offer[] {
     price: data.price,
     description: data.description,
     documents: data.documents,
+    image_url: '',
     is_active: true,
     created_at: '',
     updated_at: ''
