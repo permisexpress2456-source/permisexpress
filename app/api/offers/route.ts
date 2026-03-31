@@ -22,5 +22,8 @@ export async function GET() {
     return NextResponse.json({ error: `Erreur serveur: ${error.message}` }, { status: 500 })
   }
 
-  return NextResponse.json({ offers: data })
+  return NextResponse.json(
+    { offers: data },
+    { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' } }
+  )
 }
