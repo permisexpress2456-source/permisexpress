@@ -54,11 +54,27 @@ export default function Navbar() {
   const [offers, setOffers] = useState<Offer[]>([])
   const { user, profile, signOut } = useAuth()
 
-  useEffect(() => {
-    fetch('/api/offers', { cache: 'no-store' })
+  const loadOffers = () => {
+    fetch('/api/offers', { 
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    })
       .then(res => res.json())
-      .then(data => setOffers(data.offers || []))
-      .catch(() => setOffers([]))
+      .then(data => {
+        console.log('Offres chargées:', data.offers?.length || 0)
+        setOffers(data.offers || [])
+      })
+      .catch(err => {
+        console.error('Erreur chargement offres:', err)
+        setOffers([])
+      })
+  }
+
+  useEffect(() => {
+    loadOffers()
   }, [])
 
   // Construire le menu OFFRES dynamiquement
