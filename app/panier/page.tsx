@@ -77,6 +77,24 @@ export default function PanierPage() {
               </span>
             </div>
 
+            <div className="panier__payment-info" style={{ 
+              background: '#fffbeb', 
+              border: '2px solid #f59e0b', 
+              borderRadius: '8px', 
+              padding: '16px', 
+              marginBottom: '20px',
+              fontSize: '13px'
+            }}>
+              <p style={{ fontWeight: 900, color: '#92400e', marginBottom: '8px' }}>✅ PAIEMENTS ACCEPTÉS</p>
+              <div style={{ marginBottom: '8px' }}>
+                <p style={{ fontWeight: 800, color: 'var(--dark)', marginBottom: '4px' }}>➡️ RIB (Virement instantané)</p>
+              </div>
+              <div>
+                <p style={{ fontWeight: 800, color: 'var(--dark)', marginBottom: '4px' }}>➡️ RECHARGE TRANSCASH</p>
+                <p style={{ color: '#78350f' }}>Bureau de tabac — tickets de 100€ chacun</p>
+              </div>
+            </div>
+
             <a href="https://wa.me/33757754774" target="_blank" rel="noopener noreferrer" className="panier__btn-wa">
               💬 Commander via WhatsApp
             </a>

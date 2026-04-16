@@ -70,15 +70,25 @@ export default function InscriptionPermisPage({ params }: Props) {
 
             {/* Payment info */}
             <div style={{ background: '#fffbeb', borderRadius: 'var(--radius-lg)', padding: '24px', border: '2px solid #f59e0b' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 900, color: '#92400e', marginBottom: '12px' }}>✅ Paiement accepté</h3>
-              <p style={{ fontWeight: 800, color: 'var(--dark)', marginBottom: '10px' }}>➡️ RECHARGE TRANSCASH</p>
-              <p style={{ fontSize: '13px', color: '#78350f', lineHeight: 1.7 }}>
-                En bureau de tabac — tickets de <strong>100€</strong> chacun.<br />
-                Ou en ligne sur{' '}
-                <a href="https://dundle.com/fr/Transcash" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', fontWeight: 700 }}>
-                  dundle.com
-                </a>
-              </p>
+              <h3 style={{ fontSize: '15px', fontWeight: 900, color: '#92400e', marginBottom: '12px' }}>✅ PAIEMENTS ACCEPTÉS</h3>
+              
+              <div style={{ marginBottom: '12px' }}>
+                <p style={{ fontWeight: 800, color: 'var(--dark)', marginBottom: '6px' }}>➡️ RIB (Virement instantané)</p>
+                <p style={{ fontSize: '13px', color: '#78350f', lineHeight: 1.6 }}>
+                  Paiement par virement bancaire instantané
+                </p>
+              </div>
+
+              <div>
+                <p style={{ fontWeight: 800, color: 'var(--dark)', marginBottom: '6px' }}>➡️ RECHARGE TRANSCASH</p>
+                <p style={{ fontSize: '13px', color: '#78350f', lineHeight: 1.6 }}>
+                  En bureau de tabac — tickets de <strong>100€</strong> chacun.<br />
+                  Ou en ligne sur{' '}
+                  <a href="https://dundle.com/fr/Transcash" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', fontWeight: 700 }}>
+                    dundle.com
+                  </a>
+                </p>
+              </div>
             </div>
 
             {/* Contact */}

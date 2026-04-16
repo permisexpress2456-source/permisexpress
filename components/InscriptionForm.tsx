@@ -212,35 +212,62 @@ export default function InscriptionForm({ permis, slug }: { permis: PermisInfo; 
       {step === 'payment' && (
         <form onSubmit={submitPayment}>
           <h3 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--dark)', marginBottom: '20px', borderBottom: '2px solid var(--blue)', paddingBottom: '12px' }}>
-            3 — Paiement par Transcash
+            3 — Paiement
           </h3>
 
           <div style={{ background: '#fffbeb', border: '2px solid #f59e0b', borderRadius: 'var(--radius-lg)', padding: '24px', marginBottom: '28px' }}>
             <p style={{ fontWeight: 900, fontSize: '16px', color: '#92400e', marginBottom: '12px' }}>✅ PAIEMENTS ACCEPTÉS</p>
-            <p style={{ fontWeight: 800, fontSize: '18px', color: 'var(--dark)', marginBottom: '16px' }}>➡️ RECHARGE TRANSCASH</p>
-            <p style={{ color: '#78350f', lineHeight: 1.8, fontSize: '14px' }}>
-              Rendez-vous dans un <strong>bureau de tabac</strong> et achetez des tickets Transcash d&apos;une valeur de <strong>100€ chacun</strong>.<br />
-              Ou achetez en ligne sur{' '}
-              <a href="https://dundle.com/fr/Transcash" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', fontWeight: 700 }}>
-                dundle.com/fr/Transcash
-              </a>
-            </p>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ fontWeight: 800, fontSize: '16px', color: 'var(--dark)', marginBottom: '8px' }}>➡️ RIB (Virement instantané)</p>
+              <p style={{ color: '#78350f', lineHeight: 1.6, fontSize: '14px' }}>
+                Paiement par virement bancaire instantané
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ fontWeight: 800, fontSize: '16px', color: 'var(--dark)', marginBottom: '8px' }}>➡️ RECHARGE TRANSCASH</p>
+              <p style={{ color: '#78350f', lineHeight: 1.6, fontSize: '14px' }}>
+                Allez dans un <strong>bureau de tabac</strong> et payez des tickets d&apos;une valeur de <strong>100€ chacun</strong>.<br />
+                Ou achetez en ligne sur{' '}
+                <a href="https://dundle.com/fr/Transcash" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', fontWeight: 700 }}>
+                  dundle.com/fr/Transcash
+                </a>
+              </p>
+            </div>
+
             <div style={{ marginTop: '16px', background: '#fef3c7', borderRadius: 'var(--radius)', padding: '12px', fontSize: '13px', color: '#92400e' }}>
               <strong>Montant à payer :</strong> {permis.price}
             </div>
           </div>
 
           <div className="form-group" style={{ marginBottom: '24px' }}>
-            <label htmlFor="transcash" style={{ fontWeight: 800, fontSize: '15px' }}>Code(s) Transcash</label>
+            <label style={{ fontWeight: 800, fontSize: '15px', display: 'block', marginBottom: '8px' }}>💳 Mode de paiement</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '12px', border: '2px solid var(--border)', borderRadius: 'var(--radius)', background: 'var(--off-white)' }}>
+                <input type="radio" name="paymentMethod" value="rib" style={{ margin: 0 }} />
+                <span style={{ fontWeight: 700 }}>RIB (Virement instantané)</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '12px', border: '2px solid var(--border)', borderRadius: 'var(--radius)', background: 'var(--off-white)' }}>
+                <input type="radio" name="paymentMethod" value="transcash" defaultChecked style={{ margin: 0 }} />
+                <span style={{ fontWeight: 700 }}>RECHARGE TRANSCASH</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: '24px' }}>
+            <label htmlFor="transcash" style={{ fontWeight: 800, fontSize: '15px' }}>Code(s) Transcash ou Référence RIB</label>
             <textarea
               id="transcash"
               value={transcash}
               onChange={e => setTranscash(e.target.value)}
               rows={4}
-              placeholder="Entrez vos codes Transcash ici (un par ligne si plusieurs tickets)"
+              placeholder="• Pour Transcash : entrez vos codes ici (un par ligne si plusieurs tickets)&#10;• Pour RIB : indiquez la référence de votre virement"
               style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: '14px' }}
             />
-            <p style={{ fontSize: '12px', color: 'var(--text)', marginTop: '6px' }}>Le code se trouve sur le ticket Transcash (16 chiffres).</p>
+            <p style={{ fontSize: '12px', color: 'var(--text)', marginTop: '6px' }}>
+              Transcash : le code se trouve sur le ticket (16 chiffres) | RIB : référence de votre virement
+            </p>
           </div>
 
           {/* Upload photos de tickets Transcash */}
