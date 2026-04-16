@@ -10,7 +10,7 @@ export async function getActiveOffers(): Promise<Offer[]> {
     // Utiliser une URL absolue pour les appels côté serveur
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const res = await fetch(`${baseUrl}/api/offers`, { 
-      next: { revalidate: 60 } // Cache avec revalidation toutes les 60 secondes
+      cache: 'no-store' // Désactiver le cache pour voir les nouvelles offres immédiatement
     })
     
     if (!res.ok) throw new Error('API error')
