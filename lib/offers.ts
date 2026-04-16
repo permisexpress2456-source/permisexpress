@@ -7,8 +7,13 @@ import { permisData } from './permisData'
  */
 export async function getActiveOffers(): Promise<Offer[]> {
   try {
-    // Utiliser une URL absolue pour les appels côté serveur
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    // Déterminer l'URL de base automatiquement
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin  // Côté client : utiliser l'origine actuelle
+      : process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : 'http://localhost:3000'  // Côté serveur : essayer VERCEL_URL puis localhost
+    
     const res = await fetch(`${baseUrl}/api/offers`, { 
       cache: 'no-store' // Désactiver le cache pour voir les nouvelles offres immédiatement
     })
