@@ -57,11 +57,7 @@ export default function PaymentInfo({ variant = 'default', showAmount, className
             'Bureau de tabac — tickets de 100€ chacun'
           ) : (
             <>
-              Allez dans un <strong>bureau de tabac</strong> et payez des tickets d&apos;une valeur de <strong>100€ chacun</strong>.<br />
-              Ou achetez en ligne sur{' '}
-              <a href="https://dundle.com/fr/Transcash" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', fontWeight: 700 }}>
-                dundle.com/fr/Transcash
-              </a>
+              Allez dans un <strong>bureau de tabac</strong> et payez des tickets d&apos;une valeur de <strong>100€ chacun</strong>.
             </>
           )}
         </p>

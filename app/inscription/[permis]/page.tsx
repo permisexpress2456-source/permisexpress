@@ -82,11 +82,7 @@ export default function InscriptionPermisPage({ params }: Props) {
               <div>
                 <p style={{ fontWeight: 800, color: 'var(--dark)', marginBottom: '6px' }}>➡️ RECHARGE TRANSCASH</p>
                 <p style={{ fontSize: '13px', color: '#78350f', lineHeight: 1.6 }}>
-                  En bureau de tabac — tickets de <strong>100€</strong> chacun.<br />
-                  Ou en ligne sur{' '}
-                  <a href="https://dundle.com/fr/Transcash" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', fontWeight: 700 }}>
-                    dundle.com
-                  </a>
+                  En bureau de tabac — tickets de <strong>100€</strong> chacun.
                 </p>
               </div>
             </div>

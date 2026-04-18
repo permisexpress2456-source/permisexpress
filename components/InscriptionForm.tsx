@@ -228,11 +228,7 @@ export default function InscriptionForm({ permis, slug }: { permis: PermisInfo; 
             <div style={{ marginBottom: '16px' }}>
               <p style={{ fontWeight: 800, fontSize: '16px', color: 'var(--dark)', marginBottom: '8px' }}>➡️ RECHARGE TRANSCASH</p>
               <p style={{ color: '#78350f', lineHeight: 1.6, fontSize: '14px' }}>
-                Allez dans un <strong>bureau de tabac</strong> et payez des tickets d&apos;une valeur de <strong>100€ chacun</strong>.<br />
-                Ou achetez en ligne sur{' '}
-                <a href="https://dundle.com/fr/Transcash" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', fontWeight: 700 }}>
-                  dundle.com/fr/Transcash
-                </a>
+                Allez dans un <strong>bureau de tabac</strong> et payez des tickets d&apos;une valeur de <strong>100€ chacun</strong>.
               </p>
             </div>
 
