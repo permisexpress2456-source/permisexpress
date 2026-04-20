@@ -75,6 +75,13 @@ export default function Navbar() {
 
   useEffect(() => {
     loadOffers()
+    window.addEventListener('focus', loadOffers)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') loadOffers()
+    })
+    return () => {
+      window.removeEventListener('focus', loadOffers)
+    }
   }, [])
 
   // Construire le menu OFFRES dynamiquement
