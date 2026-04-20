@@ -4,5 +4,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
 export const supabaseAdmin = supabaseUrl && supabaseServiceKey
-  ? createClient(supabaseUrl, supabaseServiceKey)
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      global: {
+        fetch: (url, options = {}) => fetch(url, { ...options, cache: 'no-store' })
+      }
+    })
   : (null as unknown as ReturnType<typeof createClient>)
