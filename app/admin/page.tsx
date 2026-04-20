@@ -156,6 +156,7 @@ export default function AdminPage() {
     if (!res.ok) { alert(d.error); return }
     fetchOffers()
     if (selectedOffer?.id === id) setSelectedOffer({ ...selectedOffer, ...data })
+    window.dispatchEvent(new CustomEvent('offersUpdated'))
   }
 
   async function deleteOffer(id: string) {

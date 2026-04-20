@@ -76,11 +76,13 @@ export default function Navbar() {
   useEffect(() => {
     loadOffers()
     window.addEventListener('focus', loadOffers)
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') loadOffers()
-    })
+    window.addEventListener('offersUpdated', loadOffers)
+    const onVisibility = () => { if (document.visibilityState === 'visible') loadOffers() }
+    document.addEventListener('visibilitychange', onVisibility)
     return () => {
       window.removeEventListener('focus', loadOffers)
+      window.removeEventListener('offersUpdated', loadOffers)
+      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
 
