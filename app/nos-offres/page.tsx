@@ -15,9 +15,9 @@ async function getAllOffers() {
       .eq('is_active', true)
       .order('title', { ascending: true })
 
-    if (!error && data && data.length > 0) return data
+    if (!error && data) return data
   }
-  return getFallbackOffers()
+  return getFallbackOffers().filter(o => o.is_active)
 }
 
 export default async function NosOffresPage() {
