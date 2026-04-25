@@ -13,6 +13,8 @@ const nextConfig = {
       // Rediriger /produits/* et /offres/* vers /nos-offres/*
       { source: '/produits/:slug', destination: '/nos-offres/:slug', permanent: true },
       { source: '/offres/:slug', destination: '/nos-offres/:slug', permanent: true },
+      // Rediriger /login vers /connexion
+      { source: '/login', destination: '/connexion', permanent: false },
     ]
   },
 }

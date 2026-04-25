@@ -177,4 +177,16 @@ export const permisData: Record<string, PermisInfo> = {
       '2 photos d\'identité',
     ],
   },
+  'fimo': {
+    title: 'FIMO — Formation Initiale Minimale Obligatoire',
+    price: '1 500€',
+    description: 'Formation obligatoire pour les conducteurs de poids lourds souhaitant exercer une activité de transport routier.',
+    documents: [
+      'Permis C ou CE (original + copie)',
+      'Pièce d\'identité recto/verso',
+      'Justificatif de domicile',
+      '2 photos d\'identité',
+      'Attestation de formation initiale',
+    ],
+  },
 }
